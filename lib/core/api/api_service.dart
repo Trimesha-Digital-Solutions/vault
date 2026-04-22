@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'api_config.dart';
@@ -71,6 +73,26 @@ class ApiService {
 
   Future<String?> getUsername() async {
     return await _storage.read(key: _usernameKey);
+  }
+
+  /// Reads `user_id` from the JWT payload (no signature verification).
+  Future<String?> getCurrentUserId() async {
+    final token = await getToken();
+    if (token == null || token.isEmpty) return null;
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return null;
+      var payload = parts[1];
+      final mod = payload.length % 4;
+      if (mod != 0) {
+        payload += '=' * (4 - mod);
+      }
+      final jsonStr = utf8.decode(base64Url.decode(payload));
+      final map = json.decode(jsonStr) as Map<String, dynamic>;
+      return map['user_id'] as String?;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> saveEmail(String email) async {

@@ -10,13 +10,20 @@ from ..models import (
     User, Team, TeamCreate, TeamInDB, TeamMember,
     SharedVault, SharedVaultCreate, SharedVaultInDB,
     Password, PasswordCreate, PasswordInDB,
-    MessageResponse
+    MessageResponse, RoleUpdateRequest
 )
 from ..database import Database
 from .auth import get_current_user
 from ..security import EncryptionService, security_service
 
 router = APIRouter(prefix="/teams", tags=["teams"])
+
+
+def _get_member_role(team: dict, user_id: str) -> str | None:
+    for member in team.get("members", []):
+        if member["user_id"] == user_id:
+            return member.get("role")
+    return None
 
 
 def generate_team_code(length=8):
@@ -44,7 +51,7 @@ async def create_team(
          members=[
              TeamMember(
                  user_id=current_user.id,
-                 role="Admin"
+                 role="Organiser"
              )
          ],
          created_at=datetime.utcnow(),
@@ -58,7 +65,7 @@ async def create_team(
         name=new_team.name,
         code=new_team.code,
         created_by=new_team.created_by,
-        role="Admin",
+        role="Organiser",
         member_count=1,
         created_at=new_team.created_at
     )
@@ -89,7 +96,7 @@ async def join_team(
     # Add member
     new_member = TeamMember(
         user_id=current_user.id,
-        role="Viewer"
+        role="Member"
     )
     
     await Database.db.teams.update_one(
@@ -105,7 +112,7 @@ async def join_team(
         name=team["name"],
         code=team["code"],
         created_by=team["created_by"],
-        role="Viewer",
+        role="Member",
         member_count=len(members) + 1,
         created_at=team["created_at"]
     )
@@ -122,7 +129,7 @@ async def get_my_teams(
     result = []
     for team in teams:
         # Find user role
-        user_role = "Viewer"
+        user_role = "Member"
         for member in team["members"]:
             if member["user_id"] == current_user.id:
                 user_role = member["role"]
@@ -318,6 +325,51 @@ async def get_team_members(
             })
             
     return member_details
+
+
+@router.put("/{team_id}/members/{user_id}/role", response_model=MessageResponse)
+async def update_member_role(
+    team_id: str,
+    user_id: str,
+    role_in: RoleUpdateRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Update role for a team member (Organiser only)."""
+    if role_in.role not in {"Organiser", "Member"}:
+        raise HTTPException(status_code=400, detail="Role must be Organiser or Member")
+    if not ObjectId.is_valid(team_id) or not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid ID")
+
+    team = await Database.db.teams.find_one(
+        {"_id": ObjectId(team_id), "members.user_id": current_user.id}
+    )
+    if not team:
+        raise HTTPException(status_code=404, detail="Team not found")
+
+    current_role = _get_member_role(team, current_user.id)
+    if current_role != "Organiser":
+        raise HTTPException(status_code=403, detail="Only organisers can change roles")
+
+    target_member = next((m for m in team["members"] if m["user_id"] == user_id), None)
+    if target_member is None:
+        raise HTTPException(status_code=404, detail="Member not found")
+
+    if target_member["role"] == "Organiser" and role_in.role == "Member":
+        organisers = [m for m in team["members"] if m["role"] == "Organiser"]
+        if len(organisers) <= 1:
+            raise HTTPException(status_code=400, detail="Team must have at least one organiser")
+
+    await Database.db.teams.update_one(
+        {"_id": ObjectId(team_id), "members.user_id": user_id},
+        {
+            "$set": {
+                "members.$.role": role_in.role,
+                "updated_at": datetime.utcnow(),
+            }
+        },
+    )
+
+    return MessageResponse(message="Member role updated successfully", success=True)
 
 
 from ..services.email_service import email_service

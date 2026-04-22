@@ -166,7 +166,7 @@ class PasswordListResponse(BaseModel):
 class TeamMember(BaseModel):
     """Team member model"""
     user_id: str
-    role: str = "Viewer"  # Admin, Editor, Viewer
+    role: str = "Member"  # Organiser, Member
     joined_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -213,6 +213,16 @@ class Team(TeamBase):
     created_at: datetime
 
 
+class RoleUpdateRequest(BaseModel):
+    """Request to update a member's role"""
+    role: str  # "Organiser" or "Member"
+
+
+class ChatReadRequest(BaseModel):
+    """Mark a chat message as read"""
+    message_id: str
+
+
 # Shared Vault Models
 class SharedVaultBase(BaseModel):
     """Base shared vault model"""
@@ -257,3 +267,97 @@ class SharedVault(SharedVaultBase):
     password_count: int = 0
     created_at: datetime
 
+
+# ── Chat / Messaging Models ──────────────────────────────────────────
+
+class ChatMessageCreate(BaseModel):
+    """Create a chat message"""
+    content: str
+    reply_to_id: Optional[str] = None  # ID of message being replied to
+    message_type: str = "text"  # text, image, document
+
+
+class ChatMessageInDB(BaseModel):
+    """Chat message as stored in database"""
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str}
+    )
+    
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    team_id: str
+    sender_id: str
+    sender_name: str
+    content: str
+    message_type: str = "text"  # text, image, document
+    reply_to_id: Optional[str] = None
+    reply_to_preview: Optional[str] = None  # Preview text of replied message
+    reply_to_sender: Optional[str] = None   # Sender name of replied message
+    is_deleted: bool = False
+    read_by: list[str] = []  # List of user_ids who have read
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class ChatMessage(BaseModel):
+    """Chat message response model"""
+    id: str
+    team_id: str
+    sender_id: str
+    sender_name: str
+    content: str
+    message_type: str = "text"
+    reply_to_id: Optional[str] = None
+    reply_to_preview: Optional[str] = None
+    reply_to_sender: Optional[str] = None
+    is_deleted: bool = False
+    read_by: list[str] = []
+    created_at: datetime
+
+
+# ── Document Sharing Models ──────────────────────────────────────────
+
+class DocumentCreate(BaseModel):
+    """Create a document share"""
+    name: str
+    allowed_member_ids: list[str] = []  # Empty = all team members
+
+
+class DocumentInDB(BaseModel):
+    """Document as stored in database"""
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str}
+    )
+    
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    team_id: str
+    name: str
+    original_filename: str
+    file_path: str  # Path on server
+    file_size: int  # bytes
+    mime_type: str
+    uploaded_by: str
+    uploaded_by_name: str
+    allowed_member_ids: list[str]  # Empty list = all team members
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class Document(BaseModel):
+    """Document response model"""
+    id: str
+    team_id: str
+    name: str
+    original_filename: str
+    file_size: int
+    mime_type: str
+    uploaded_by: str
+    uploaded_by_name: str
+    allowed_member_ids: list[str]
+    created_at: datetime
+
+
+class DocumentUpdateAccess(BaseModel):
+    """Update document access"""
+    allowed_member_ids: list[str]

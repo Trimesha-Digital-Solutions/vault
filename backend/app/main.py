@@ -5,7 +5,9 @@ import logging
 
 from .database import Database
 from .config import settings
-from .routes import auth, passwords, email, teams
+from .routes import auth, passwords, email, teams, chat, documents
+from .websocket_manager import sio
+import socketio
 
 # Configure logging
 logging.basicConfig(
@@ -20,8 +22,12 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager"""
     # Startup
     logger.info("Starting up Password Manager API...")
-    await Database.connect_db()
-    logger.info("Database connected successfully")
+    try:
+        await Database.connect_db()
+        logger.info("Database connected successfully")
+    except Exception as e:
+        logger.warning(f"Database connection failed: {e}")
+        logger.warning("Server will start without database - some endpoints may not work")
     
     yield
     
@@ -38,6 +44,7 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+sio_app = socketio.ASGIApp(sio, other_asgi_app=app)
 
 # Configure CORS
 app.add_middleware(
@@ -53,6 +60,8 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(passwords.router, prefix="/api")
 app.include_router(email.router, prefix="/api")
 app.include_router(teams.router, prefix="/api")
+app.include_router(chat.router, prefix="/api")
+app.include_router(documents.router, prefix="/api")
 
 
 
@@ -78,7 +87,7 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        "app.main:app",
+        "app.main:sio_app",
         host="0.0.0.0",
         port=8000,
         reload=True

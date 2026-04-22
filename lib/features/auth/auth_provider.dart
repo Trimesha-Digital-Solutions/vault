@@ -13,6 +13,10 @@ final usernameProvider = FutureProvider<String?>((ref) async {
   return await ref.read(apiServiceProvider).getUsername();
 });
 
+final currentUserIdProvider = FutureProvider<String?>((ref) async {
+  return await ref.read(apiServiceProvider).getCurrentUserId();
+});
+
 final emailProvider = FutureProvider<String?>((ref) async {
   // We should also save/get email. For now, let's assume we store it or just return a default
   // Actually, let's add saveEmail to ApiService

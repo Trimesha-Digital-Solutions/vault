@@ -1,7 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import '../../../core/api/api_config.dart';
+import 'team_file_open.dart';
 import '../../../core/api/api_service.dart';
 import '../models/team_models.dart';
+import '../models/document_models.dart';
 
 class TeamService {
   final ApiService _apiService;
@@ -24,11 +28,7 @@ class TeamService {
     try {
       final response = await _apiService.dio.post(
         '${ApiConfig.baseUrl}/api/teams/join',
-        data: {
-          'code': {'code': code}
-        }, // Matches Body(..., embed=True) which expects dict with key 'code' but here just JSON {"code": "..."} might assume 'code' field?
-        // Wait, Body(..., embed=True) expects {"code": "XYZ"} in JSON body.
-        // Actually, if embed=True, it expects key 'code'.
+        data: {'code': code},
       );
       return TeamModel.fromJson(response.data);
     } catch (e) {
@@ -96,6 +96,99 @@ class TeamService {
       await _apiService.dio.post(
           '${ApiConfig.baseUrl}/api/teams/$teamId/invite',
           data: {'email': email});
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<void> updateMemberRole(
+      String teamId, String userId, String role) async {
+    try {
+      await _apiService.dio.put(
+        '${ApiConfig.baseUrl}/api/teams/$teamId/members/$userId/role',
+        data: {'role': role},
+      );
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<List<TeamDocumentModel>> getDocuments(String teamId) async {
+    try {
+      final response =
+          await _apiService.dio.get('${ApiConfig.baseUrl}/api/teams/$teamId/documents');
+      return (response.data as List)
+          .map((e) => TeamDocumentModel.fromJson(e))
+          .toList();
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<TeamDocumentModel> uploadDocument(
+    String teamId, {
+    required String name,
+    required String fileName,
+    String? filePath,
+    Uint8List? fileBytes,
+    List<String> allowedMemberIds = const [],
+  }) async {
+    if (filePath == null && fileBytes == null) {
+      throw ArgumentError('Provide filePath (mobile/desktop) or fileBytes (web).');
+    }
+    try {
+      final MultipartFile filePart = fileBytes != null
+          ? MultipartFile.fromBytes(fileBytes, filename: fileName)
+          : await MultipartFile.fromFile(filePath!, filename: fileName);
+      final formData = FormData.fromMap({
+        'name': name,
+        'allowed_member_ids': allowedMemberIds.join(','),
+        'file': filePart,
+      });
+      final response = await _apiService.dio.post(
+        '${ApiConfig.baseUrl}/api/teams/$teamId/documents',
+        data: formData,
+      );
+      return TeamDocumentModel.fromJson(response.data);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<void> updateDocumentAccess(
+      String teamId, String docId, List<String> allowedMemberIds) async {
+    try {
+      await _apiService.dio.put(
+        '${ApiConfig.baseUrl}/api/teams/$teamId/documents/$docId/access',
+        data: {'allowed_member_ids': allowedMemberIds},
+      );
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<void> deleteDocument(String teamId, String docId) async {
+    try {
+      await _apiService.dio
+          .delete('${ApiConfig.baseUrl}/api/teams/$teamId/documents/$docId');
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Fetches the file and opens it (or triggers a browser download on web).
+  Future<void> downloadDocument(
+      String teamId, String docId, String originalFilename) async {
+    try {
+      final response = await _apiService.dio.get<List<int>>(
+        '${ApiConfig.baseUrl}/api/teams/$teamId/documents/$docId/download',
+        options: Options(responseType: ResponseType.bytes),
+      );
+      final raw = response.data;
+      if (raw == null) {
+        throw StateError('Empty download body');
+      }
+      await openDownloadedDocument(Uint8List.fromList(raw), originalFilename);
     } catch (e) {
       throw _handleError(e);
     }

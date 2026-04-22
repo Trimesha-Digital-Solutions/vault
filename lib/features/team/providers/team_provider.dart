@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/auth_provider.dart';
 import '../models/team_models.dart';
+import '../models/document_models.dart';
 import '../services/team_service.dart';
 import '../../vault/models/password_model.dart';
 
@@ -43,6 +44,11 @@ final teamMembersProvider = FutureProvider.autoDispose
 final teamVaultsProvider = FutureProvider.autoDispose
     .family<List<SharedVaultModel>, String>((ref, teamId) async {
   return await ref.read(teamServiceProvider).getTeamVaults(teamId);
+});
+
+final teamDocumentsProvider = FutureProvider.autoDispose
+    .family<List<TeamDocumentModel>, String>((ref, teamId) async {
+  return await ref.read(teamServiceProvider).getDocuments(teamId);
 });
 
 // Shared Vault Passwords Provider
@@ -118,6 +124,19 @@ class TeamController extends StateNotifier<AsyncValue<void>> {
       // Members list won't change immediately until they accept/it's processed,
       // but if we did add them as pending, we'd reload.
       // Current backend sends email details.
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> updateMemberRole(
+      String teamId, String userId, String role) async {
+    state = const AsyncValue.loading();
+    try {
+      await _teamService.updateMemberRole(teamId, userId, role);
+      _ref.invalidate(teamMembersProvider(teamId));
+      _ref.invalidate(myTeamsProvider);
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
