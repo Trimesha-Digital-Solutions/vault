@@ -23,7 +23,7 @@ class TeamModel {
       name: json['name'],
       code: json['code'],
       createdBy: json['created_by'],
-      role: json['role'] ?? 'Viewer',
+      role: json['role'] ?? 'Member',
       memberCount: json['member_count'] ?? 0,
       createdAt: DateTime.parse(json['created_at']),
     );
@@ -56,6 +56,11 @@ class TeamMemberModel {
       joinedAt: DateTime.parse(json['joined_at']),
     );
   }
+}
+
+class TeamRole {
+  static const String organiser = 'Organiser';
+  static const String member = 'Member';
 }
 
 class SharedVaultModel {

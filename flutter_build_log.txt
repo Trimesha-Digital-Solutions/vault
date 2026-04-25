@@ -1,0 +1,242 @@
+﻿Compiling lib\main.dart for the Web...                          
+flutter : Wasm dry run 
+findings:
+At line:1 char:1
++ flutter build web 2>&1 
+| Out-File -FilePath 
+flutter_build_log.txt -En 
+...
++ ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (W  
+  asm dry run findings:   
+ :String) [], RemoteEx    
+ception
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+Found incompatibilities 
+with WebAssembly.
+
+package:flutter_secure_sto
+rage_web/flutter_secure_st
+orage_web.dart 5:1 - 
+dart:html unsupported (0)
+package:flutter_secure_sto
+rage_web/flutter_secure_st
+orage_web.dart 6:1 - 
+dart:js_util unsupported 
+(15)
+package:flutter_secure_sto
+rage_web/src/subtle.dart 
+21:1 - dart:html 
+unsupported (0)
+package:flutter_secure_sto
+rage_web/src/subtle.dart 
+22:1 - dart:js_util 
+unsupported (15)
+package:flutter_secure_sto
+rage_web/src/subtle.dart 
+26:1 - package:js/js.dart 
+unsupported (14)
+
+Consider addressing these 
+issues to enable wasm 
+builds. See docs for more 
+info: https://docs.flutter
+.dev/platform-integration/
+web/wasm
+
+Use --no-wasm-dry-run to 
+disable these warnings.
+Target dart2js failed: 
+ProcessException: Process 
+exited abnormally with 
+exit code 1:
+../../AppData/Local/Pub/Ca
+che/hosted/pub.dev/google_
+fonts-6.3.0/lib/src/google
+_fonts_variant.dart:152:42
+:
+Error: Constant 
+evaluation error:
+const _fontWeightToFilenam
+eWeightParts = {
+                          
+               ^
+../../AppData/Local/Pub/Ca
+che/hosted/pub.dev/google_
+fonts-6.3.0/lib/src/google
+_fonts_variant.dart:153:14
+:
+Info: The key 'FontWeight 
+{value: 100.0}' does not 
+have a primitive operator 
+'=='.
+ - 'FontWeight' is from 
+'dart:ui'.
+  FontWeight.w100: 'Thin',
+             ^
+../../AppData/Local/Pub/Ca
+che/hosted/pub.dev/google_
+fonts-6.3.0/lib/src/google
+_fonts_variant.dart:152:7:
+Info: While analyzing:
+const _fontWeightToFilenam
+eWeightParts = {
+      ^
+Error: Compilation failed.
+  Command: D:\Mayank\flutt
+er\bin\cache\dart-sdk\bin\
+dart.exe compile js --plat
+form-binaries=D:\Mayank\fl
+utter\bin\cache\flutter_we
+b_sdk\kernel 
+--invoker=flutter_tool 
+-Ddart.vm.product=true 
+-DFLUTTER_VERSION=3.41.6 
+-DFLUTTER_CHANNEL=stable -
+DFLUTTER_GIT_URL=https://g
+ithub.com/flutter/flutter.
+git -DFLUTTER_FRAMEWORK_RE
+VISION=db50e20168 -DFLUTTE
+R_ENGINE_REVISION=425cfb54
+d0 -DFLUTTER_DART_VERSION=
+3.11.4 -DFLUTTER_WEB_USE_S
+KIA=true -DFLUTTER_WEB_USE
+_SKWASM=false -DFLUTTER_WE
+B_CANVASKIT_URL=https://ww
+w.gstatic.com/flutter-canv
+askit/425cfb54d01a9472b3e8
+1d9e76fd63a4a44cfbcb/ 
+--native-null-assertions 
+--no-source-maps -O4 
+--minify -o C:\Users\Lenov
+o\Trimesha\vault\.dart_too
+l\flutter_build\13aeae7600
+c168d224b0104613ab27f3\app
+.dill --packages=C:\Users\
+Lenovo\Trimesha\vault\.dar
+t_tool\package_config.json
+ --cfe-only C:\Users\Lenov
+o\Trimesha\vault\.dart_too
+l\flutter_build\13aeae7600
+c168d224b0104613ab27f3\mai
+n.dart
+#0      
+RunResult.throwException (
+package:flutter_tools/src/
+base/process.dart:153:5)
+#1      
+_DefaultProcessUtils.run (
+package:flutter_tools/src/
+base/process.dart:379:19)
+<asynchronous suspension>
+#2      
+Dart2JSTarget.build (packa
+ge:flutter_tools/src/build
+_system/targets/web.dart:2
+08:5)
+<asynchronous suspension>
+#3      _BuildInstance._in
+vokeInternal (package:flut
+ter_tools/src/build_system
+/build_system.dart:937:9)
+<asynchronous suspension>
+#4      
+Future.wait.<anonymous 
+closure> (dart:async/futur
+e.dart:546:21)
+<asynchronous suspension>
+#5      _BuildInstance.inv
+okeTarget (package:flutter
+_tools/src/build_system/bu
+ild_system.dart:875:32)
+<asynchronous suspension>
+#6      
+Future.wait.<anonymous 
+closure> (dart:async/futur
+e.dart:546:21)
+<asynchronous suspension>
+#7      _BuildInstance.inv
+okeTarget (package:flutter
+_tools/src/build_system/bu
+ild_system.dart:875:32)
+<asynchronous suspension>
+#8      
+FlutterBuildSystem.build (
+package:flutter_tools/src/
+build_system/build_system.
+dart:684:16)
+<asynchronous suspension>
+#9      
+WebBuilder.buildWeb (packa
+ge:flutter_tools/src/web/c
+ompile.dart:107:34)
+<asynchronous suspension>
+#10     BuildWebCommand.ru
+nCommand (package:flutter_
+tools/src/commands/build_w
+eb.dart:300:5)
+<asynchronous suspension>
+#11     FlutterCommand.run
+.<anonymous closure> (pack
+age:flutter_tools/src/runn
+er/flutter_command.dart:15
+90:27)
+<asynchronous suspension>
+#12     
+AppContext.run.<anonymous 
+closure> (package:flutter_
+tools/src/base/context.dar
+t:154:19)
+<asynchronous suspension>
+#13     
+CommandRunner.runCommand (
+package:args/command_runne
+r.dart:212:13)
+<asynchronous suspension>
+#14     FlutterCommandRunn
+er.runCommand.<anonymous 
+closure> (package:flutter_
+tools/src/runner/flutter_c
+ommand_runner.dart:496:9)
+<asynchronous suspension>
+#15     
+AppContext.run.<anonymous 
+closure> (package:flutter_
+tools/src/base/context.dar
+t:154:19)
+<asynchronous suspension>
+#16     FlutterCommandRunn
+er.runCommand (package:flu
+tter_tools/src/runner/flut
+ter_command_runner.dart:43
+1:5)
+<asynchronous suspension>
+#17     FlutterCommandRunn
+er.run.<anonymous 
+closure> (package:flutter_
+tools/src/runner/flutter_c
+ommand_runner.dart:307:33)
+<asynchronous suspension>
+#18     run.<anonymous 
+closure>.<anonymous 
+closure> (package:flutter_
+tools/runner.dart:104:11)
+<asynchronous suspension>
+#19     
+AppContext.run.<anonymous 
+closure> (package:flutter_
+tools/src/base/context.dar
+t:154:19)
+<asynchronous suspension>
+#20     main (package:flut
+ter_tools/executable.dart:
+103:3)
+<asynchronous suspension>
+
+Compiling lib\main.dart for the Web...                             33.0s
+Error: Failed to compile 
+application for the Web.
